@@ -1,0 +1,569 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes, viewport-fit=cover">
+    <title>Giải mã ô chữ - Thanh xuân lành mạnh</title>
+    <style>
+        * {
+            box-sizing: border-box;
+            user-select: none;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        body {
+            background: white;
+            font-family: 'Times New Roman', Times, serif;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            margin: 0;
+            padding: 15px;
+        }
+
+        .game-container {
+            max-width: 1200px;
+            width: 100%;
+            background: white;
+            padding: 15px;
+        }
+
+        h1 {
+            text-align: center;
+            font-size: 1.6rem;
+            margin-top: 0;
+            margin-bottom: 15px;
+            color: #1e466e;
+            font-family: 'Times New Roman', Times, serif;
+        }
+
+        /* khu vực các câu */
+        .rows-area {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            margin-bottom: 30px;
+        }
+
+        /* mỗi hàng câu hỏi */
+        .word-row {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            padding: 8px 0;
+            cursor: pointer;
+            border-radius: 8px;
+            transition: background 0.2s;
+        }
+
+        .word-row:hover {
+            background: #f5f5f5;
+        }
+
+        /* số thứ tự câu */
+        .question-number {
+            width: 70px;
+            font-size: 1.1rem;
+            font-weight: bold;
+            color: #1e466e;
+            text-align: right;
+            flex-shrink: 0;
+            font-family: 'Times New Roman', Times, serif;
+        }
+
+        /* container chứa các ô vuông */
+        .letters-container {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 6px;
+            flex: 1;
+        }
+
+        /* ô vuông chữ cái */
+        .letter-box {
+            width: 50px;
+            height: 50px;
+            background: #ffffff;
+            border: 2px solid #333;
+            border-radius: 0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.3rem;
+            font-weight: bold;
+            font-family: 'Times New Roman', Times, serif;
+            transition: 0.1s linear;
+            text-transform: uppercase;
+        }
+        
+        /* chữ đỏ - TKĐ */
+        .letter-box.red-char {
+            color: #cc0000;
+        }
+        
+        /* chữ đen - bình thường */
+        .letter-box.black-char {
+            color: #000000;
+        }
+
+        /* Phần câu hỏi hiển thị khi click */
+        .question-panel {
+            background: #f0f0f0;
+            margin: 10px 0 20px 0;
+            padding: 12px 20px;
+            text-align: center;
+            font-weight: bold;
+            font-size: 1rem;
+            border-left: 4px solid #cc0000;
+            font-family: 'Times New Roman', Times, serif;
+        }
+
+        .question-text {
+            display: inline-block;
+            color: #333;
+        }
+
+        /* Câu đặc biệt - hình ☆ */
+        .special-section {
+            margin-top: 25px;
+            padding-top: 15px;
+            border-top: 2px solid #e0e0e0;
+        }
+
+        .special-row {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            padding: 8px 0;
+            cursor: pointer;
+            border-radius: 8px;
+            transition: background 0.2s;
+        }
+
+        .special-row:hover {
+            background: #f5f5f5;
+        }
+
+        .star-icon-box {
+            width: 70px;
+            font-size: 1.6rem;
+            text-align: right;
+            flex-shrink: 0;
+            color: #ffaa00;
+            font-family: 'Times New Roman', Times, serif;
+        }
+
+        .special-letters-container {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 6px;
+            flex: 1;
+        }
+
+        /* ô vuông câu đặc biệt */
+        .special-letter-box {
+            width: 50px;
+            height: 50px;
+            background: #ffffff;
+            border: 2px solid #333;
+            border-radius: 0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.3rem;
+            font-weight: bold;
+            font-family: 'Times New Roman', Times, serif;
+            text-transform: uppercase;
+        }
+
+        .special-letter-box.filled {
+            color: #cc0000;
+        }
+
+        /* Khung hiển thị từ khóa có dấu */
+        .keyword-frame {
+            margin-top: 20px;
+            padding: 12px 20px;
+            background: #fff8f0;
+            border: 2px solid #cc0000;
+            border-radius: 8px;
+            text-align: center;
+        }
+
+        .keyword-no-accent {
+            font-size: 1.3rem;
+            font-weight: bold;
+            font-family: 'Courier New', monospace;
+            letter-spacing: 2px;
+            color: #cc0000;
+            margin-bottom: 8px;
+        }
+
+        .keyword-with-accent {
+            font-size: 1.4rem;
+            font-weight: bold;
+            color: #1e466e;
+            font-family: 'Times New Roman', Times, serif;
+        }
+
+        .special-message {
+            text-align: center;
+            margin-top: 12px;
+            font-size: 0.95rem;
+            font-weight: bold;
+            padding: 8px;
+            font-family: 'Times New Roman', Times, serif;
+        }
+
+        @media (max-width: 768px) {
+            .letter-box, .special-letter-box {
+                width: 42px;
+                height: 42px;
+                font-size: 1.1rem;
+            }
+            .question-number, .star-icon-box {
+                width: 55px;
+                font-size: 0.95rem;
+            }
+            .star-icon-box {
+                font-size: 1.3rem;
+            }
+            .letters-container, .special-letters-container {
+                gap: 4px;
+            }
+            .word-row, .special-row {
+                gap: 10px;
+            }
+            .keyword-no-accent {
+                font-size: 1rem;
+            }
+            .keyword-with-accent {
+                font-size: 1.1rem;
+            }
+        }
+
+        @media (max-width: 550px) {
+            .letter-box, .special-letter-box {
+                width: 36px;
+                height: 36px;
+                font-size: 0.9rem;
+            }
+            .question-number, .star-icon-box {
+                width: 48px;
+                font-size: 0.85rem;
+            }
+            .star-icon-box {
+                font-size: 1.1rem;
+            }
+            .letters-container, .special-letters-container {
+                gap: 3px;
+            }
+            .word-row, .special-row {
+                gap: 8px;
+            }
+        }
+
+        @media (max-width: 450px) {
+            .letter-box, .special-letter-box {
+                width: 32px;
+                height: 32px;
+                font-size: 0.8rem;
+            }
+            .question-number, .star-icon-box {
+                width: 42px;
+                font-size: 0.75rem;
+            }
+        }
+    </style>
+</head>
+<body>
+<div class="game-container">
+    <h1>🔐 GIẢI MÃ Ô CHỮ 🔐</h1>
+
+    <!-- Các dòng ô vuông câu 1-6 -->
+    <div id="rowsContainer" class="rows-area"></div>
+
+    <!-- Khu vực hiển thị câu hỏi -->
+    <div id="dynamicPanel" class="question-panel" style="display: none;">
+        <div id="panelContent" class="question-text"></div>
+    </div>
+
+    <!-- Câu đặc biệt - ☆ (16 ô từ khóa) -->
+    <div class="special-section">
+        <div id="specialRow" class="special-row">
+            <div class="star-icon-box">☆</div>
+            <div id="specialLettersContainer" class="special-letters-container"></div>
+        </div>
+        
+        <!-- Khung hiển thị từ khóa -->
+        <div id="keywordFrame" class="keyword-frame" style="display: none;">
+            <div class="keyword-no-accent">TINHBANTRONGSANG</div>
+            <div class="keyword-with-accent">TÌNH BẠN TRONG SÁNG</div>
+        </div>
+        
+        <div id="specialMessage" class="special-message"></div>
+    </div>
+</div>
+
+<script>
+    // Dữ liệu các câu 1-6
+    const questionsData = [
+        { 
+            number: 1,
+            clue: "Dụng cụ tránh thai, vừa có tác dụng phòng tránh các bệnh lây qua đường tình dục.", 
+            answer: "BAOCAOSU", 
+            redTokens: ["BA", "A", "S"],
+            redPositions: [0,1,3,7]
+        },
+        { 
+            number: 2,
+            clue: "Từ dùng để chỉ việc kết hôn trước tuổi thanh niên?", 
+            answer: "TẢOHÔN", 
+            redTokens: ["OH", "N"],
+            redPositions: [2,3,5]
+        },
+        { 
+            number: 3,
+            clue: "Một biểu hiện thường có ở nam giới ở tuổi dậy thì?", 
+            answer: "VỞGIỌNG",   
+            redTokens: ["I", "N", "G"],
+            redPositions: [3,5,6]
+        },
+        { 
+            number: 4,
+            clue: "Một giai đoạn phát triển của con người mà có sự thay đổi rất nhiều về vóc dáng và tâm, sinh lý?", 
+            answer: "TUỔIDẬYTHÌ", 
+            redTokens: ["T", "T"],
+            redPositions: [0,7]
+        },
+        { 
+            number: 5,
+            clue: "Người ta thường nói đây là “bệnh” của người đang yêu?", 
+            answer: "TƯƠNGTƯ", 
+            redTokens: ["NG"],
+            redPositions: [3,4]
+        },
+        { 
+            number: 6,
+            clue: "Các bạn nữ nên giữ gìn điều này trước khi kết hôn.", 
+            answer: "TRINHTIẾT", 
+            redTokens: ["R", "N"],
+            redPositions: [1,3]
+        }
+    ];
+
+    // Từ khóa chính
+    const targetPhraseNoAccent = "TINHBANTRONGSANG";
+    const targetPhraseWithAccent = "TÌNH BẠN TRONG SÁNG";
+    
+    // Trạng thái
+    let revealedAnswers = [false, false, false, false, false, false];
+    let collectedTokensPerQuestion = [false, false, false, false, false, false];
+    let currentActiveQuestionIndex = null;
+    
+    // Trạng thái cho câu ☆
+    let specialActive = false;
+    let specialRevealed = false;
+    
+    const rowsContainer = document.getElementById('rowsContainer');
+    const dynamicPanel = document.getElementById('dynamicPanel');
+    const panelContent = document.getElementById('panelContent');
+    const specialLettersContainer = document.getElementById('specialLettersContainer');
+    const specialMessage = document.getElementById('specialMessage');
+    const specialRow = document.getElementById('specialRow');
+    const keywordFrame = document.getElementById('keywordFrame');
+
+    // Render các hàng ô vuông câu 1-6
+    function renderRows() {
+        rowsContainer.innerHTML = '';
+        for (let idx = 0; idx < questionsData.length; idx++) {
+            const item = questionsData[idx];
+            const answerStr = item.answer;
+            const letters = answerStr.split('');
+            const isRevealed = revealedAnswers[idx];
+            const redPositions = item.redPositions;
+            
+            const rowDiv = document.createElement('div');
+            rowDiv.className = 'word-row';
+            rowDiv.setAttribute('data-index', idx);
+            
+            const numberSpan = document.createElement('div');
+            numberSpan.className = 'question-number';
+            numberSpan.textContent = `Câu ${item.number}`;
+            rowDiv.appendChild(numberSpan);
+            
+            const lettersContainer = document.createElement('div');
+            lettersContainer.className = 'letters-container';
+            
+            for (let i = 0; i < letters.length; i++) {
+                const box = document.createElement('div');
+                box.className = 'letter-box';
+                
+                if (isRevealed) {
+                    box.textContent = letters[i];
+                    if (redPositions.includes(i)) {
+                        box.classList.add('red-char');
+                    } else {
+                        box.classList.add('black-char');
+                    }
+                } else {
+                    box.textContent = '';
+                    box.classList.add('black-char');
+                }
+                lettersContainer.appendChild(box);
+            }
+            
+            rowDiv.appendChild(lettersContainer);
+            
+            rowDiv.addEventListener('click', (function(questionIndex) {
+                return function() { handleRowClick(questionIndex); };
+            })(idx));
+            
+            rowsContainer.appendChild(rowDiv);
+        }
+    }
+    
+    // Cập nhật các ô từ khóa (câu ☆)
+    function updateSpecialBoxes() {
+        let fullKeywordArray = [];
+        for (let i = 0; i < questionsData.length; i++) {
+            const tokensOfQuestion = questionsData[i].redTokens;
+            if (collectedTokensPerQuestion[i]) {
+                for (let t of tokensOfQuestion) {
+                    for (let ch of t.split('')) {
+                        fullKeywordArray.push(ch);
+                    }
+                }
+            } else {
+                for (let t of tokensOfQuestion) {
+                    for (let ch of t.split('')) {
+                        fullKeywordArray.push('');
+                    }
+                }
+            }
+        }
+        
+        specialLettersContainer.innerHTML = '';
+        
+        for (let i = 0; i < fullKeywordArray.length; i++) {
+            const box = document.createElement('div');
+            box.className = 'special-letter-box';
+            const char = fullKeywordArray[i];
+            if (char !== '') {
+                box.textContent = char;
+                box.classList.add('filled');
+                box.style.color = '#cc0000';
+            } else {
+                box.textContent = '';
+                box.classList.add('empty');
+                box.style.color = '#999';
+            }
+            specialLettersContainer.appendChild(box);
+        }
+        
+        let allFilled = fullKeywordArray.every(ch => ch !== '');
+        
+        if (allFilled && !specialRevealed) {
+            specialMessage.innerHTML = `🎉 CHÍNH XÁC! 🎉<br>⭐ ${targetPhraseWithAccent} ⭐`;
+            specialMessage.style.color = "#cc0000";
+            specialMessage.style.fontWeight = "bold";
+            keywordFrame.style.display = "block";
+        } else if (allFilled && specialRevealed) {
+            specialMessage.innerHTML = `🎉 CHÍNH XÁC! 🎉<br>⭐ ${targetPhraseWithAccent} ⭐`;
+            keywordFrame.style.display = "block";
+        } else if (!specialRevealed) {
+            let missingCount = fullKeywordArray.filter(ch => ch === '').length;
+            specialMessage.innerHTML = `⭐ Còn ${missingCount} ô chưa giải ⭐`;
+            specialMessage.style.color = "#888";
+        }
+    }
+    
+    // Hiển thị đáp án cho câu ☆
+    function showSpecialAnswer() {
+        if (specialRevealed) return;
+        
+        specialRevealed = true;
+        
+        // Hiển thị các ô với từ khóa TINHBANTRONGSANG
+        const targetChars = targetPhraseNoAccent.split('');
+        const specialBoxes = specialLettersContainer.querySelectorAll('.special-letter-box');
+        
+        for (let i = 0; i < specialBoxes.length && i < targetChars.length; i++) {
+            specialBoxes[i].textContent = targetChars[i];
+            specialBoxes[i].style.color = '#cc0000';
+            specialBoxes[i].classList.add('filled');
+        }
+        
+        // Hiển thị khung từ khóa
+        keywordFrame.style.display = "block";
+        specialMessage.innerHTML = `🎉 ĐÁP ÁN: ${targetPhraseWithAccent} 🎉`;
+        specialMessage.style.color = "#cc0000";
+        specialMessage.style.fontWeight = "bold";
+    }
+    
+    // Xử lý click cho câu ☆
+    function handleSpecialClick() {
+        if (specialRevealed) {
+            return;
+        }
+        
+        if (specialActive) {
+            dynamicPanel.style.display = 'none';
+            showSpecialAnswer();
+            specialActive = false;
+        } else {
+            if (currentActiveQuestionIndex !== null) {
+                currentActiveQuestionIndex = null;
+            }
+            dynamicPanel.style.display = 'block';
+            panelContent.innerHTML = `❓ Câu ☆: VTN nên giữ gìn mối quan hệ này? (TỪ KHÓA 16 CHỮ CÁI)`;
+            specialActive = true;
+        }
+    }
+    
+    // Xử lý click cho câu thường 1-6
+    function handleRowClick(questionIndex) {
+        const currentQuestion = questionsData[questionIndex];
+        
+        if (specialActive) {
+            specialActive = false;
+            dynamicPanel.style.display = 'none';
+        }
+        
+        if (revealedAnswers[questionIndex]) {
+            dynamicPanel.style.display = 'block';
+            panelContent.innerHTML = `📌 Câu ${currentQuestion.number}: ${currentQuestion.clue}`;
+            currentActiveQuestionIndex = questionIndex;
+            return;
+        }
+        
+        if (currentActiveQuestionIndex === questionIndex) {
+            dynamicPanel.style.display = 'none';
+            revealedAnswers[questionIndex] = true;
+            if (!collectedTokensPerQuestion[questionIndex]) {
+                collectedTokensPerQuestion[questionIndex] = true;
+            }
+            renderRows();
+            updateSpecialBoxes();
+            currentActiveQuestionIndex = null;
+        } else {
+            dynamicPanel.style.display = 'block';
+            panelContent.innerHTML = `❓ Câu ${currentQuestion.number}: ${currentQuestion.clue}`;
+            currentActiveQuestionIndex = questionIndex;
+        }
+    }
+    
+    // Khởi tạo
+    function init() {
+        renderRows();
+        updateSpecialBoxes();
+        dynamicPanel.style.display = 'none';
+        keywordFrame.style.display = 'none';
+        specialRow.addEventListener('click', handleSpecialClick);
+    }
+    
+    init();
+</script>
+</body>
+</html>
